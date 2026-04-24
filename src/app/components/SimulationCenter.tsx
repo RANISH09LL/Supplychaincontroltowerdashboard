@@ -1,23 +1,23 @@
 import { Cloud, Car, TrendingUp, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useDashboard } from '../DashboardContext';
+import { useState } from 'react';
 
 export function SimulationCenter() {
-  const { activeSimulation, setActiveSimulation, setShipments } = useDashboard();
+  const { runSimulation } = useDashboard();
+  const [activeSimulation, setActiveSimulation] = useState<string | null>(null);
 
-  const handleRunSimulation = (name: string, type: 'storm' | 'port' | 'traffic' | 'demand') => {
+  const handleRunSimulation = async (name: string, type: 'storm' | 'congestion' | 'delay' | 'demand_spike') => {
     setActiveSimulation(name);
-    setShipments(current => current.map(s => {
-      const riskIncrease = type === 'storm' ? 35 : type === 'demand' ? 15 : 20;
-      return { 
-        ...s, 
-        riskScore: Math.min(100, s.riskScore + (Math.random() * riskIncrease)),
-        status: s.riskScore > 60 ? 'At Risk' : s.status
-      };
-    }));
-    toast.info(`Simulation Triggered`, {
-      description: `Scenario "${name}" is now active. Risk scores updated.`
-    });
+    const error = await runSimulation(type);
+    
+    if (error) {
+      toast.error(`Simulation Failed`, { description: error });
+    } else {
+      toast.info(`Simulation Triggered`, {
+        description: `Scenario "${name}" is now active. Risk scores updated.`
+      });
+    }
   };
 
   const handleReset = () => {
@@ -38,15 +38,15 @@ export function SimulationCenter() {
             <Cloud className={`w-6 h-6 ${activeSimulation === 'Severe Storm' ? 'text-primary' : 'text-primary/60'}`} />
             <span className="text-[11px] text-foreground font-bold text-center leading-tight">Severe Storm</span>
           </button>
-          <button onClick={() => handleRunSimulation('Port Congestion', 'port')} className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-200 ${activeSimulation === 'Port Congestion' ? 'border-primary bg-primary/8 shadow-md' : 'border-border hover:bg-muted/20 hover:shadow-sm'}`}>
+          <button onClick={() => handleRunSimulation('Port Congestion', 'congestion')} className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-200 ${activeSimulation === 'Port Congestion' ? 'border-primary bg-primary/8 shadow-md' : 'border-border hover:bg-muted/20 hover:shadow-sm'}`}>
             <Car className={`w-6 h-6 ${activeSimulation === 'Port Congestion' ? 'text-primary' : 'text-primary/60'}`} />
             <span className="text-[11px] text-foreground font-bold text-center leading-tight">Port Congestion</span>
           </button>
-          <button onClick={() => handleRunSimulation('Traffic Delay', 'traffic')} className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-200 ${activeSimulation === 'Traffic Delay' ? 'border-primary bg-primary/8 shadow-md' : 'border-border hover:bg-muted/20 hover:shadow-sm'}`}>
+          <button onClick={() => handleRunSimulation('Traffic Delay', 'delay')} className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-200 ${activeSimulation === 'Traffic Delay' ? 'border-primary bg-primary/8 shadow-md' : 'border-border hover:bg-muted/20 hover:shadow-sm'}`}>
             <Car className={`w-6 h-6 ${activeSimulation === 'Traffic Delay' ? 'text-primary' : 'text-primary/60'}`} />
             <span className="text-[11px] text-foreground font-bold text-center leading-tight">Traffic Delay</span>
           </button>
-          <button onClick={() => handleRunSimulation('Demand Spike', 'demand')} className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-200 ${activeSimulation === 'Demand Spike' ? 'border-primary bg-primary/8 shadow-md' : 'border-border hover:bg-muted/20 hover:shadow-sm'}`}>
+          <button onClick={() => handleRunSimulation('Demand Spike', 'demand_spike')} className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-200 ${activeSimulation === 'Demand Spike' ? 'border-primary bg-primary/8 shadow-md' : 'border-border hover:bg-muted/20 hover:shadow-sm'}`}>
             <TrendingUp className={`w-6 h-6 ${activeSimulation === 'Demand Spike' ? 'text-primary' : 'text-primary/60'}`} />
             <span className="text-[11px] text-foreground font-bold text-center leading-tight">Demand Spike</span>
           </button>

@@ -10,7 +10,7 @@ import { CriticalIssues } from '../components/CriticalIssues';
 import { useDashboard } from '../DashboardContext';
 
 export default function DashboardPage() {
-  const { metrics, demoMode, generateSampleData } = useDashboard();
+  const { metrics, refresh } = useDashboard();
 
   return (
     <div>
@@ -54,20 +54,20 @@ export default function DashboardPage() {
         <div className="flex flex-col items-end gap-2.5">
           <p className="text-[11px] text-muted-foreground font-medium">Last updated: Today, {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
           <button 
-            onClick={generateSampleData}
+            onClick={() => refresh()}
             className="px-5 py-2.5 bg-card border border-border text-foreground rounded-lg text-[13px] font-semibold hover:bg-muted/50 transition-colors shadow-sm hover:shadow-md"
           >
-            ↻ Generate Sample Data
+            ↻ Refresh Data
           </button>
         </div>
       </div>
 
       {/* Metrics */}
       <div className="grid grid-cols-4 gap-5 mb-7">
-        <MetricCard title="Total Shipments" value={metrics.totalShipments.toString()} change="+12 vs yesterday" icon={Package} tintColor="bg-primary/8" />
-        <MetricCard title="At Risk" value={metrics.atRisk.toString()} change={`${((metrics.atRisk / metrics.totalShipments) * 100).toFixed(1)}% of total`} icon={AlertTriangle} tintColor="bg-[var(--risk-high)]/8" />
-        <MetricCard title="Total Value at Risk" value={`$${(metrics.valueAtRisk / 1000000).toFixed(2)}M`} change="+ $320K vs yesterday" icon={DollarSign} tintColor="bg-secondary/30" />
-        <MetricCard title="On-Time" value={`${metrics.onTimePercent.toFixed(1)}%`} change="+ 5.4% vs yesterday" icon={TrendingUp} tintColor="bg-accent/15" />
+        <MetricCard title="Total Shipments" value={metrics?.total_shipments?.toString() || '0'} change="+0 vs yesterday" icon={Package} tintColor="bg-primary/8" />
+        <MetricCard title="At Risk" value={metrics?.at_risk_count?.toString() || '0'} change={`${metrics?.total_shipments ? ((metrics.at_risk_count / metrics.total_shipments) * 100).toFixed(1) : 0}% of total`} icon={AlertTriangle} tintColor="bg-[var(--risk-high)]/8" />
+        <MetricCard title="Total Value at Risk" value={`$${((metrics?.total_value_at_risk || 0) / 1000000).toFixed(2)}M`} change="+ $0M vs yesterday" icon={DollarSign} tintColor="bg-secondary/30" />
+        <MetricCard title="On-Time" value={`${metrics?.total_shipments ? ((metrics.on_time_count / metrics.total_shipments) * 100).toFixed(1) : 0}%`} change="+ 0% vs yesterday" icon={TrendingUp} tintColor="bg-accent/15" />
       </div>
 
       {/* Middle row — 3 columns */}

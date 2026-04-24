@@ -18,6 +18,14 @@ const timeline = [
 export default function ShipmentsPage() {
   const { shipments } = useDashboard();
   const selected = shipments[0]; // Default to first shipment
+  
+  if (!selected) {
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground font-medium">
+        Loading shipments...
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -60,7 +68,7 @@ export default function ShipmentsPage() {
               <div className="flex flex-col items-center">
                 <p className="text-[11px] text-muted-foreground mb-2 uppercase tracking-[0.1em] font-bold">Risk Score</p>
                 <div className="w-20 h-20 rounded-full border-4 border-[var(--risk-high)] flex items-center justify-center bg-[var(--risk-high)]/5">
-                  <span className="text-[26px] font-display text-[var(--risk-high)]">{Math.round(selected.riskScore)}</span>
+                  <span className="text-[26px] font-display text-[var(--risk-high)]">{Math.round(selected.risk_score)}</span>
                 </div>
               </div>
             </div>
@@ -135,8 +143,8 @@ export default function ShipmentsPage() {
                     <p className="text-[13px] text-foreground font-bold">{s.id}</p>
                     <p className="text-[11px] text-muted-foreground">{s.origin} → {s.destination}</p>
                   </div>
-                  <span className={`text-[13px] font-black ${s.riskScore >= 70 ? 'text-[var(--risk-high)]' : s.riskScore >= 40 ? 'text-[var(--risk-medium)]' : 'text-[var(--risk-low)]'}`}>
-                    {Math.round(s.riskScore)}
+                  <span className={`text-[13px] font-black ${s.risk_score >= 70 ? 'text-[var(--risk-high)]' : s.risk_score >= 40 ? 'text-[var(--risk-medium)]' : 'text-[var(--risk-low)]'}`}>
+                    {Math.round(s.risk_score)}
                   </span>
                 </button>
               ))}

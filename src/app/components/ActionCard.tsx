@@ -3,13 +3,17 @@ import { toast } from 'sonner';
 import { useDashboard } from '../DashboardContext';
 
 export function ActionCard() {
-  const { resolveIssue } = useDashboard();
+  const { applyRec } = useDashboard();
 
-  const handleLockInAction = () => {
-    resolveIssue('SH-78291', 'A1');
-    toast.success('Action Locked In', {
-      description: 'Shipment SH-78291 rerouted via Route B. Risk score reduced to 40.',
-    });
+  const handleLockInAction = async () => {
+    const error = await applyRec('A1');
+    if (error) {
+      toast.error('Action Failed');
+    } else {
+      toast.success('Action Locked In', {
+        description: 'Shipment SH-78291 rerouted via Route B. Risk score reduced to 40.',
+      });
+    }
   };
 
   return (

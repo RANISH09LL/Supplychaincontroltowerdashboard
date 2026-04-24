@@ -10,12 +10,12 @@ export function ShipmentsTable() {
   };
 
   const getStatusColor = (status: string) => {
-    if (status === 'At Risk') return 'text-[var(--risk-high)] font-bold';
-    if (status === 'Delayed') return 'text-[var(--risk-medium)] font-bold';
+    if (status === 'at_risk') return 'text-[var(--risk-high)] font-bold';
+    if (status === 'delayed') return 'text-[var(--risk-medium)] font-bold';
     return 'text-[var(--risk-low)] font-bold';
   };
 
-  const getStatusNumber = (status: ShipmentStatus) => {
+  const getStatusNumber = (status: string) => {
      return shipments.filter(s => s.status === status).length;
   }
 
@@ -27,10 +27,10 @@ export function ShipmentsTable() {
       </div>
 
       <div className="px-4 py-2.5 border-b border-border flex gap-2 overflow-x-auto bg-muted/10">
-        <button className="whitespace-nowrap px-3.5 py-1.5 rounded-md text-[12px] bg-primary text-primary-foreground font-bold shadow-sm">All {metrics.totalShipments}</button>
-        <button className="whitespace-nowrap px-3.5 py-1.5 rounded-md text-[12px] text-foreground font-semibold hover:bg-muted/50 transition-colors">At Risk {getStatusNumber('At Risk')}</button>
-        <button className="whitespace-nowrap px-3.5 py-1.5 rounded-md text-[12px] text-foreground font-semibold hover:bg-muted/50 transition-colors">Delayed {getStatusNumber('Delayed')}</button>
-        <button className="whitespace-nowrap px-3.5 py-1.5 rounded-md text-[12px] text-foreground font-semibold hover:bg-muted/50 transition-colors">On-Time {getStatusNumber('On-Time')}</button>
+        <button className="whitespace-nowrap px-3.5 py-1.5 rounded-md text-[12px] bg-primary text-primary-foreground font-bold shadow-sm">All {metrics?.total_shipments || 0}</button>
+        <button className="whitespace-nowrap px-3.5 py-1.5 rounded-md text-[12px] text-foreground font-semibold hover:bg-muted/50 transition-colors">At Risk {getStatusNumber('at_risk')}</button>
+        <button className="whitespace-nowrap px-3.5 py-1.5 rounded-md text-[12px] text-foreground font-semibold hover:bg-muted/50 transition-colors">Delayed {getStatusNumber('delayed')}</button>
+        <button className="whitespace-nowrap px-3.5 py-1.5 rounded-md text-[12px] text-foreground font-semibold hover:bg-muted/50 transition-colors">On-Time {getStatusNumber('on_time')}</button>
       </div>
 
       <div className="overflow-x-auto">
@@ -54,8 +54,8 @@ export function ShipmentsTable() {
                 <td className="px-6 py-3.5 text-[13px] text-foreground font-medium">{shipment.destination}</td>
                 <td className="px-6 py-3.5 text-[13px] text-foreground font-medium">{shipment.eta}</td>
                 <td className="px-6 py-3.5">
-                  <span className={`inline-flex min-w-[34px] justify-center px-2.5 py-1 rounded-full text-[11px] font-black ${getRiskColor(shipment.riskScore)}`}>
-                    {Math.round(shipment.riskScore)}
+                  <span className={`inline-flex min-w-[34px] justify-center px-2.5 py-1 rounded-full text-[11px] font-black ${getRiskColor(shipment.risk_score)}`}>
+                    {Math.round(shipment.risk_score)}
                   </span>
                 </td>
                 <td className={`px-6 py-3.5 text-[13px] ${getStatusColor(shipment.status)}`}>
