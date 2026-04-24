@@ -1,110 +1,147 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+// src/app/DashboardContext.tsx
+// ============================================================
+// DASHBOARD CONTEXT — global state + data layer
+// ============================================================
 
-export type RiskLevel = 'Low' | 'Medium' | 'High';
-export type ShipmentStatus = 'On-Time' | 'Delayed' | 'At Risk';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react';
 
-export interface Shipment {
-  id: string;
-  origin: string;
-  destination: string;
-  eta: string;
-  riskScore: number;
-  status: ShipmentStatus;
-  value: number;
+import { useAuth }      from '../hooks/useAuth';
+import { useRealtime }  from '../hooks/useRealtime';
+import { getDashboardData } from '../services/dashboardService';
+import { triggerSimulation } from '../services/simulationService';
+import { applyRecommendation } from '../services/recommendationService';
+import { createSnapshot }  from '../services/snapshotService';
+import { logoutUser }      from '../services/authService';
+
+import type {
+  DashboardData,
+  DashboardMetrics,
+  Shipment,
+  Alert,
+  Recommendation,
+  TradeOffOption,
+  SimulationType,
+} from '../types';
+
+// ─── Context shape ───────────────────────────────────────────
+
+interface DashboardContextValue {
+  // Auth
+  userId:  string | null;
+  loading: boolean;
+  logout:  () => Promise<void>;
+
+  // Data
+  shipments:       Shipment[];
+  alerts:          Alert[];
+  recommendations: Recommendation[];
+  tradeOffOptions: TradeOffOption[];
+  metrics:         DashboardMetrics | null;
+  dataError:       string | null;
+
+  // Actions
+  refresh:              () => Promise<void>;
+  runSimulation:        (type: SimulationType) => Promise<string | null>;
+  applyRec:             (rec_id: string) => Promise<string | null>;
+  takeSnapshot:         (name: string) => Promise<string | null>;
 }
 
-export interface Alert {
-  id: string;
-  title: string;
-  description: string;
-  severity: RiskLevel;
-  timeAgo: string;
-}
+const DashboardContext = createContext<DashboardContextValue | null>(null);
 
-interface SummaryMetrics {
-  totalShipments: number;
-  atRisk: number;
-  valueAtRisk: number;
-  onTimePercent: number;
-}
-
-interface DashboardContextType {
-  shipments: Shipment[];
-  alerts: Alert[];
-  activeSimulation: string | null;
-  demoMode: boolean;
-  metrics: SummaryMetrics;
-  setShipments: React.Dispatch<React.SetStateAction<Shipment[]>>;
-  setAlerts: React.Dispatch<React.SetStateAction<Alert[]>>;
-  setActiveSimulation: (sim: string | null) => void;
-  setDemoMode: (mode: boolean) => void;
-  resolveIssue: (shipmentId: string, alertId?: string) => void;
-  generateSampleData: () => void;
-}
-
-const DEFAULT_SHIPMENTS: Shipment[] = [
-  { id: 'SH-78291', origin: 'Mumbai, IN', destination: 'Rotterdam, NL', eta: 'May 24, 10:00 AM', riskScore: 85, status: 'At Risk', value: 125000 },
-  { id: 'SH-78292', origin: 'Shanghai, CN', destination: 'Los Angeles, US', eta: 'May 20, 2:00 PM', riskScore: 40, status: 'Delayed', value: 98500 },
-  { id: 'SH-78293', origin: 'Hamburg, DE', destination: 'New York, US', eta: 'May 19, 9:00 AM', riskScore: 20, status: 'On-Time', value: 76300 },
-  { id: 'SH-78294', origin: 'Dubai, UAE', destination: 'London, UK', eta: 'May 21, 11:00 AM', riskScore: 60, status: 'At Risk', value: 63800 },
-];
-
-const DEFAULT_ALERTS: Alert[] = [
-  { id: 'A1', title: 'Severe Weather Warning', description: 'Heavy storms expected in Bay of Bengal', severity: 'High', timeAgo: '10 min ago' },
-  { id: 'A2', title: 'Port Congestion', description: 'High congestion at Los Angeles Port', severity: 'Medium', timeAgo: '25 min ago' },
-  { id: 'A3', title: 'Route Delay', description: 'Road closure on Route 66', severity: 'Medium', timeAgo: '1 hr ago' },
-  { id: 'A4', title: 'Customs Delay', description: 'Documentation verification in progress', severity: 'Low', timeAgo: '2 hr ago' },
-];
-
-export const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
+// ─── Provider ────────────────────────────────────────────────
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
-  const [shipments, setShipments] = useState<Shipment[]>(DEFAULT_SHIPMENTS);
-  const [alerts, setAlerts] = useState<Alert[]>(DEFAULT_ALERTS);
-  const [activeSimulation, setActiveSimulation] = useState<string | null>(null);
-  const [demoMode, setDemoMode] = useState(false);
+  const { user, loading: authLoading } = useAuth();
 
-  const totalShipments = 128; // Usually derived, keeping static base for now, scaled slightly
-  const atRiskCount = shipments.filter(s => s.status === 'At Risk' || s.riskScore > 50).length;
-  const metrics: SummaryMetrics = {
-    totalShipments: totalShipments + (shipments.length - 4), // Dynamic adjustment
-    atRisk: 21 + atRiskCount,
-    valueAtRisk: shipments.filter(s => s.status === 'At Risk').reduce((sum, s) => sum + s.value, 2000000),
-    onTimePercent: 82.1 + (shipments.filter(s => s.status === 'On-Time').length * 0.5)
-  };
+  const [data,      setData]      = useState<DashboardData | null>(null);
+  const [dataError, setDataError] = useState<string | null>(null);
+  const [fetching,  setFetching]  = useState(false);
 
-  const resolveIssue = (shipmentId: string, alertId?: string) => {
-    setShipments(current => current.map(s => {
-      if (s.id === shipmentId) {
-        return { ...s, riskScore: Math.floor(Math.random() * 20) + 10, status: 'On-Time', eta: 'May 22, 10:00 AM' };
-      }
-      return s;
-    }));
-    if (alertId) {
-        setAlerts(current => current.filter(a => a.id !== alertId));
-    }
-  };
+  // ── Fetch / refresh ──────────────────────────────────────
+  const refresh = useCallback(async () => {
+    if (!user) return;
+    setFetching(true);
+    const { data: d, error } = await getDashboardData(user.id);
+    setData(d);
+    setDataError(error);
+    setFetching(false);
+  }, [user]);
 
-  const generateSampleData = () => {
-    setShipments(current => [...current].sort(() => Math.random() - 0.5));
-    // Simulate updating external numbers
+  // Initial load
+  useEffect(() => {
+    if (user) refresh();
+  }, [user, refresh]);
+
+  // ── Realtime ─────────────────────────────────────────────
+  useRealtime({
+    onShipmentChange: refresh,
+    onAlertChange:    refresh,
+    onRecChange:      refresh,
+  });
+
+  // ── Actions ──────────────────────────────────────────────
+
+  async function logout() {
+    await logoutUser();
+  }
+
+  async function runSimulation(type: SimulationType): Promise<string | null> {
+    if (!user) return 'Not authenticated';
+    const { error } = await triggerSimulation(type, user.id);
+    if (!error) await refresh();
+    return error;
+  }
+
+  async function applyRec(rec_id: string): Promise<string | null> {
+    if (!user) return 'Not authenticated';
+    const { error } = await applyRecommendation(rec_id, user.id);
+    if (!error) await refresh();
+    return error;
+  }
+
+  async function takeSnapshot(name: string): Promise<string | null> {
+    if (!user) return 'Not authenticated';
+    const { error } = await createSnapshot(user.id, name);
+    return error;
+  }
+
+  // ─────────────────────────────────────────────────────────
+  const value: DashboardContextValue = {
+    userId:  user?.id ?? null,
+    loading: authLoading || fetching,
+    logout,
+
+    shipments:       data?.shipments       ?? [],
+    alerts:          data?.alerts          ?? [],
+    recommendations: data?.recommendations ?? [],
+    tradeOffOptions: data?.trade_off_options ?? [],
+    metrics:         data?.metrics         ?? null,
+    dataError,
+
+    refresh,
+    runSimulation,
+    applyRec,
+    takeSnapshot,
   };
 
   return (
-    <DashboardContext.Provider value={{
-      shipments, alerts, activeSimulation, demoMode, metrics,
-      setShipments, setAlerts, setActiveSimulation, setDemoMode,
-      resolveIssue, generateSampleData
-    }}>
+    <DashboardContext.Provider value={value}>
       {children}
     </DashboardContext.Provider>
   );
 }
 
-export function useDashboard() {
-  const context = useContext(DashboardContext);
-  if (!context) {
-    throw new Error('useDashboard must be used within a DashboardProvider');
-  }
-  return context;
+// ─── Consumer hook ───────────────────────────────────────────
+
+export function useDashboard(): DashboardContextValue {
+  const ctx = useContext(DashboardContext);
+  if (!ctx) throw new Error('useDashboard must be used inside <DashboardProvider>');
+  return ctx;
 }
