@@ -53,10 +53,14 @@ export function ShipmentsTable() {
                 <td className="px-6 py-3.5 text-[13px] text-foreground font-medium">{shipment.origin}</td>
                 <td className="px-6 py-3.5 text-[13px] text-foreground font-medium">{shipment.destination}</td>
                 <td className="px-6 py-3.5 text-[13px] text-foreground font-medium">{shipment.eta}</td>
-                <td className="px-6 py-3.5">
-                  <span className={`inline-flex min-w-[34px] justify-center px-2.5 py-1 rounded-full text-[11px] font-black ${getRiskColor(shipment.risk_score)}`}>
+                <td className="px-6 py-3.5 relative group">
+                  <span className={`inline-flex min-w-[34px] justify-center px-2.5 py-1 rounded-full text-[11px] font-black cursor-help ${getRiskColor(shipment.risk_score)}`}>
                     {Math.round(shipment.risk_score)}
                   </span>
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-[100%] mb-1 w-48 p-2.5 bg-foreground text-background text-[11px] rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 text-center leading-relaxed font-medium">
+                    Calculated via multi-factor ML model combining route density, historical weather, and supplier reliability points.
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45" />
+                  </div>
                 </td>
                 <td className={`px-6 py-3.5 text-[13px] ${getStatusColor(shipment.status)}`}>
                   {shipment.status}

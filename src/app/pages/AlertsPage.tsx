@@ -31,7 +31,7 @@ export default function AlertsPage() {
             </div>
             <div>
               <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Critical</p>
-              <p className="text-[20px] font-display text-foreground">{alerts.filter(a => a.severity === 'High').length}</p>
+              <p className="text-[20px] font-display text-foreground">{alerts.filter(a => a.severity === 'high').length}</p>
             </div>
           </div>
         </div>
@@ -42,7 +42,7 @@ export default function AlertsPage() {
             </div>
             <div>
               <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Warning</p>
-              <p className="text-[20px] font-display text-foreground">{alerts.filter(a => a.severity === 'Medium').length}</p>
+              <p className="text-[20px] font-display text-foreground">{alerts.filter(a => a.severity === 'medium').length}</p>
             </div>
           </div>
         </div>
@@ -53,7 +53,7 @@ export default function AlertsPage() {
             </div>
             <div>
               <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Info</p>
-              <p className="text-[20px] font-display text-foreground">{alerts.filter(a => a.severity === 'Low').length}</p>
+              <p className="text-[20px] font-display text-foreground">{alerts.filter(a => a.severity === 'low').length}</p>
             </div>
           </div>
         </div>
