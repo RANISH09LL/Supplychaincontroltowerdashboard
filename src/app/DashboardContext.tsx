@@ -45,6 +45,7 @@ interface DashboardContextValue {
   tradeOffOptions: TradeOffOption[];
   metrics:         DashboardMetrics | null;
   dataError:       string | null;
+  activeSimulationInsight: string | null;
 
   // Actions
   refresh:              () => Promise<void>;
@@ -63,6 +64,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [data,      setData]      = useState<DashboardData | null>(null);
   const [dataError, setDataError] = useState<string | null>(null);
   const [fetching,  setFetching]  = useState(false);
+  const [activeSimulationInsight, setActiveSimulationInsight] = useState<string | null>(null);
 
   // ── Fetch / refresh ──────────────────────────────────────
   const refresh = useCallback(async () => {
@@ -94,8 +96,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   async function runSimulation(type: SimulationType): Promise<string | null> {
     if (!user) return 'Not authenticated';
-    const { error } = await triggerSimulation(type, user.id);
-    if (!error) await refresh();
+    const { data, error } = await triggerSimulation(type, user.id);
+    if (!error) {
+      if (data?.insightSummary) setActiveSimulationInsight(data.insightSummary);
+      await refresh();
+    }
     return error;
   }
 
@@ -124,6 +129,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     tradeOffOptions: data?.trade_off_options ?? [],
     metrics:         data?.metrics         ?? null,
     dataError,
+    activeSimulationInsight,
 
     refresh,
     runSimulation,

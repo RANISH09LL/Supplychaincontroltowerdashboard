@@ -1,12 +1,14 @@
+import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import {
   Package, Home, Truck, AlertCircle, Zap, Route,
-  BarChart3, Camera, Settings, ChevronDown, Lightbulb, Crown, LogOut, DollarSign
+  BarChart3, Camera, Settings, ChevronDown, Lightbulb, Crown, LogOut, DollarSign, Menu, X
 } from 'lucide-react';
 
 import { Toaster } from 'sonner';
 import { useAuth } from '../hooks/useAuth';
 import { logoutUser } from '../services/authService';
+import { AIChat } from './components/AIChat';
 
 const navItems = [
   { icon: Home, label: 'Dashboard', path: '/' },
@@ -26,6 +28,7 @@ const navItems = [
 export function Layout() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   async function handleLogout() {
     await logoutUser();
@@ -39,8 +42,27 @@ export function Layout() {
 
       <Toaster position="bottom-right" richColors />
 
+      {/* Mobile Header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[#E5DFCA] border-b border-[rgba(61,90,30,0.15)] z-40 flex items-center justify-between px-4">
+        <div className="flex items-center gap-2">
+          <img src="/tree-botanical.jpg" alt="Logo" className="w-8 h-8 object-cover rounded-md" />
+          <h2 className="text-[14px] text-[#1A2412] font-display font-semibold">Control Tower</h2>
+        </div>
+        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 -mr-2 text-[#3A4A2E]">
+          {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/20 z-40 backdrop-blur-sm" 
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar — full height from very top */}
-      <aside className="w-[230px] bg-[#E5DFCA] border-r border-[rgba(61,90,30,0.15)] min-h-screen flex flex-col fixed left-0 top-0 bottom-0 z-30">
+      <aside className={`w-[230px] bg-[#E5DFCA] border-r border-[rgba(61,90,30,0.15)] min-h-screen flex flex-col fixed left-0 top-0 bottom-0 z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo */}
         <div className="px-5 pt-7 pb-5">
           <div className="flex items-center gap-3">
@@ -68,6 +90,7 @@ export function Layout() {
                       : 'text-[#3A4A2E] font-medium hover:bg-[rgba(61,90,30,0.08)] hover:text-[#1A2412]'
                   }`
                 }
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 <item.icon className="w-[18px] h-[18px]" strokeWidth={1.8} />
                 <span>{item.label}</span>
@@ -114,10 +137,12 @@ export function Layout() {
       </aside>
 
       {/* Main content area */}
-      <div className="flex-1 ml-[230px] flex flex-col min-h-screen">
-        <main className="flex-1 p-7 overflow-y-auto">
+      <div className="flex-1 md:ml-[230px] flex flex-col min-h-screen pt-14 md:pt-0 w-full overflow-x-hidden">
+        <main className="flex-1 p-4 md:p-7 overflow-y-auto w-full">
           <Outlet />
         </main>
+
+        <AIChat />
 
         {/* Footer */}
         <footer className="border-t border-border py-3.5 px-6 bg-card">

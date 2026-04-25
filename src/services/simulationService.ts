@@ -7,7 +7,8 @@ import { supabase } from '../lib/supabase';
 import { checkPlanAccess } from './authService';
 import { refreshShipmentRisk } from './shipmentService';
 import { calculateCascadingRisk } from './riskService';
-import type { SimulationType, ServiceResult } from '../types';
+import type { SimulationType, ServiceResult, Simulation } from '../types';
+import { generateSimulationInsight } from './aiService';
 
 // Event descriptions per simulation type
 const SIM_EVENTS: Record<SimulationType, { type: string; severity: string; description: string }> = {
@@ -92,8 +93,11 @@ export async function triggerSimulation(
       .eq('id', userId);
   }
 
+  // Generate AI Insight
+  const insightSummary = await generateSimulationInsight(sim as Simulation);
+
   return {
-    data: { simulation_id: sim.id, affected_shipments: shipments.length },
+    data: { simulation_id: sim.id, affected_shipments: shipments.length, insightSummary },
     error: null,
   };
 }

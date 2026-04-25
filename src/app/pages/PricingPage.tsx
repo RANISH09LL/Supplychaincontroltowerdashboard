@@ -96,7 +96,7 @@ export default function PricingPage() {
       </div>
 
       {/* Plan cards */}
-      <div className="grid grid-cols-3 gap-5 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
         {plans.map((plan) => {
           const Icon = plan.icon;
           const isUpgrading = upgrading === plan.id;

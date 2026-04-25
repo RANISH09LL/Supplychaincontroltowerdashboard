@@ -1,7 +1,11 @@
 import { useDashboard, ShipmentStatus } from '../DashboardContext';
+import { useNavigate } from 'react-router';
+
 
 export function ShipmentsTable() {
   const { shipments, metrics } = useDashboard();
+  const navigate = useNavigate();
+
   
   const getRiskColor = (risk: number) => {
     if (risk >= 70) return 'bg-[var(--risk-high)] text-white';
@@ -23,7 +27,7 @@ export function ShipmentsTable() {
     <div className="bg-card rounded-lg shadow-sm border border-border overflow-hidden">
       <div className="px-6 py-4 border-b border-border flex items-center justify-between">
         <h3 className="text-[17px] text-foreground font-display">All Shipments</h3>
-        <button className="text-[12px] text-primary font-bold hover:underline transition-colors">View All Shipments</button>
+        <button onClick={() => navigate('/shipments')} className="text-[12px] text-primary font-bold hover:underline transition-colors">View All Shipments</button>
       </div>
 
       <div className="px-4 py-2.5 border-b border-border flex gap-2 overflow-x-auto bg-muted/10">
@@ -58,7 +62,14 @@ export function ShipmentsTable() {
                     {Math.round(shipment.risk_score)}
                   </span>
                   <div className="absolute left-1/2 -translate-x-1/2 bottom-[100%] mb-1 w-48 p-2.5 bg-foreground text-background text-[11px] rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 text-center leading-relaxed font-medium">
-                    Calculated via multi-factor ML model combining route density, historical weather, and supplier reliability points.
+                    {shipment.riskExplanation ? (
+                      <div className="space-y-1.5">
+                        <p className="text-primary-foreground/60 uppercase text-[9px] font-black tracking-wider">Gemini Insight</p>
+                        <p>{shipment.riskExplanation}</p>
+                      </div>
+                    ) : (
+                      "Calculated via multi-factor ML model combining route density, historical weather, and supplier reliability points."
+                    )}
                     <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45" />
                   </div>
                 </td>

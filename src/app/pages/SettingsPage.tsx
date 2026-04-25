@@ -45,7 +45,7 @@ export default function SettingsPage() {
         <p className="text-[13px] text-muted-foreground mt-1">Manage your workspace configuration</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {settingSections.map((section) => (
           <div key={section.title} className="bg-card rounded-lg p-5 border border-border shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-start gap-4">
@@ -55,7 +55,10 @@ export default function SettingsPage() {
               <div className="flex-1">
                 <h3 className="text-[14px] text-foreground font-medium mb-1">{section.title}</h3>
                 <p className="text-[12px] text-muted-foreground mb-3 leading-relaxed">{section.desc}</p>
-                <button className="px-3 py-1.5 bg-muted/40 border border-border text-foreground rounded-md text-[12px] font-medium hover:bg-muted/60 transition-colors">
+                <button 
+                  onClick={() => toast.success(`${section.action} modal opened. (Interactive preview)`)}
+                  className="px-3 py-1.5 bg-muted/40 border border-border text-foreground rounded-md text-[12px] font-medium hover:bg-muted/60 hover:scale-105 transition-all"
+                >
                   {section.action}
                 </button>
               </div>
@@ -72,7 +75,7 @@ export default function SettingsPage() {
           </h2>
           <p className="text-[13px] text-muted-foreground mt-1">Special tools for demonstration and testing</p>
         </div>
-        <div className="p-5 grid grid-cols-2 gap-6">
+        <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h3 className="text-[14px] text-foreground font-medium mb-2">Demo Mode</h3>
             <p className="text-[12px] text-muted-foreground mb-4">Toggle demo-specific overlays and behavior.</p>

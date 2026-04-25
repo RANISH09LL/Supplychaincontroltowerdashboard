@@ -29,6 +29,7 @@ export interface Shipment {
   risk_score: number;    // 0–100
   value: number;
   dependency_id: string | null;
+  riskExplanation?: string; // AI explanation
   created_at: string;
 }
 
@@ -95,6 +96,7 @@ export interface Recommendation {
   cost_impact: number;
   confidence: number;    // 0–100
   is_applied: boolean;
+  explanation?: string;  // AI explanation
   created_at: string;
 }
 
@@ -119,6 +121,7 @@ export interface Simulation {
   user_id: string;
   type: SimulationType;
   impact_factor: number;
+  insightSummary?: string; // AI insight
   created_at: string;
 }
 

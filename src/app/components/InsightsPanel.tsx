@@ -1,4 +1,6 @@
 import { BarChart, Bar, XAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { toast } from 'sonner';
+
 
 const trendData = [
   { id: 1, day: 'May 14', value: 45 },
@@ -49,7 +51,10 @@ export function InsightsPanel() {
         </p>
       </div>
 
-      <button className="w-full mt-4 px-4 py-2.5 text-[13px] text-primary font-bold border border-border rounded-lg hover:bg-primary hover:text-primary-foreground transition-all duration-200">
+      <button 
+        onClick={() => toast.success('Loading full report data...')}
+        className="w-full mt-4 px-4 py-2.5 text-[13px] text-primary font-bold border border-border rounded-lg hover:bg-primary hover:text-primary-foreground hover:scale-[1.02] transition-all duration-200"
+      >
         View Full Report
       </button>
     </div>

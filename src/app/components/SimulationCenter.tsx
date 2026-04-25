@@ -33,21 +33,21 @@ export function SimulationCenter() {
 
       <div className="mb-5">
         <p className="text-[12px] text-muted-foreground mb-3 font-bold uppercase tracking-[0.08em]">Scenario Templates</p>
-        <div className="grid grid-cols-4 gap-3">
-          <button onClick={() => handleRunSimulation('Severe Storm', 'storm')} className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-200 ${activeSimulation === 'Severe Storm' ? 'border-primary bg-primary/8 shadow-md' : 'border-border hover:bg-muted/20 hover:shadow-sm'}`}>
-            <Cloud className={`w-6 h-6 ${activeSimulation === 'Severe Storm' ? 'text-primary' : 'text-primary/60'}`} />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <button onClick={() => handleRunSimulation('Severe Storm', 'storm')} className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md ${activeSimulation === 'Severe Storm' ? 'border-primary bg-primary/8 shadow-md scale-[1.02]' : 'border-border hover:bg-muted/20 hover:shadow-sm'}`}>
+            <Cloud className={`w-8 h-8 transition-colors ${activeSimulation === 'Severe Storm' ? 'text-primary' : 'text-primary/60'}`} />
             <span className="text-[11px] text-foreground font-bold text-center leading-tight">Severe Storm</span>
           </button>
-          <button onClick={() => handleRunSimulation('Port Congestion', 'congestion')} className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-200 ${activeSimulation === 'Port Congestion' ? 'border-primary bg-primary/8 shadow-md' : 'border-border hover:bg-muted/20 hover:shadow-sm'}`}>
-            <Car className={`w-6 h-6 ${activeSimulation === 'Port Congestion' ? 'text-primary' : 'text-primary/60'}`} />
+          <button onClick={() => handleRunSimulation('Port Congestion', 'congestion')} className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md ${activeSimulation === 'Port Congestion' ? 'border-primary bg-primary/8 shadow-md scale-[1.02]' : 'border-border hover:bg-muted/20 hover:shadow-sm'}`}>
+            <Car className={`w-8 h-8 transition-colors ${activeSimulation === 'Port Congestion' ? 'text-primary' : 'text-primary/60'}`} />
             <span className="text-[11px] text-foreground font-bold text-center leading-tight">Port Congestion</span>
           </button>
-          <button onClick={() => handleRunSimulation('Traffic Delay', 'delay')} className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-200 ${activeSimulation === 'Traffic Delay' ? 'border-primary bg-primary/8 shadow-md' : 'border-border hover:bg-muted/20 hover:shadow-sm'}`}>
-            <Car className={`w-6 h-6 ${activeSimulation === 'Traffic Delay' ? 'text-primary' : 'text-primary/60'}`} />
+          <button onClick={() => handleRunSimulation('Traffic Delay', 'delay')} className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md ${activeSimulation === 'Traffic Delay' ? 'border-primary bg-primary/8 shadow-md scale-[1.02]' : 'border-border hover:bg-muted/20 hover:shadow-sm'}`}>
+            <Car className={`w-8 h-8 transition-colors ${activeSimulation === 'Traffic Delay' ? 'text-primary' : 'text-primary/60'}`} />
             <span className="text-[11px] text-foreground font-bold text-center leading-tight">Traffic Delay</span>
           </button>
-          <button onClick={() => handleRunSimulation('Demand Spike', 'demand_spike')} className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-200 ${activeSimulation === 'Demand Spike' ? 'border-primary bg-primary/8 shadow-md' : 'border-border hover:bg-muted/20 hover:shadow-sm'}`}>
-            <TrendingUp className={`w-6 h-6 ${activeSimulation === 'Demand Spike' ? 'text-primary' : 'text-primary/60'}`} />
+          <button onClick={() => handleRunSimulation('Demand Spike', 'demand_spike')} className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md ${activeSimulation === 'Demand Spike' ? 'border-primary bg-primary/8 shadow-md scale-[1.02]' : 'border-border hover:bg-muted/20 hover:shadow-sm'}`}>
+            <TrendingUp className={`w-8 h-8 transition-colors ${activeSimulation === 'Demand Spike' ? 'text-primary' : 'text-primary/60'}`} />
             <span className="text-[11px] text-foreground font-bold text-center leading-tight">Demand Spike</span>
           </button>
         </div>
@@ -78,7 +78,19 @@ export function SimulationCenter() {
                 <p className="text-[var(--risk-high)] font-black">+35%</p>
               </div>
             </div>
-            <button className="w-full mt-4 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-[13px] font-bold shadow-md hover:bg-primary/85 transition-all">
+            
+            {/* Gemini Insight Banner */}
+            <div className="mt-4 p-3 rounded-md bg-primary/10 border border-primary/20">
+              <p className="text-[9px] text-primary font-black uppercase tracking-wider mb-1">Simulation Insight</p>
+              <p className="text-[12px] text-foreground font-medium leading-relaxed italic">
+                "{useDashboard().activeSimulationInsight || "Analyzing systemic impact of disruption on current routing..."}"
+              </p>
+            </div>
+
+            <button 
+              onClick={() => toast.success('Opening detailed simulation results...', { description: 'Generating PDF report and impact analysis.' })}
+              className="w-full mt-4 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-[13px] font-bold shadow-md hover:bg-primary/85 hover:scale-[1.01] transition-all"
+            >
               View Results
             </button>
           </>

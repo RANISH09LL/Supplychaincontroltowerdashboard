@@ -11,6 +11,7 @@ import type {
   Shipment,
   ServiceResult,
 } from '../types';
+import { generateRecommendationExplanation } from './aiService';
 
 // ─── generateRecommendation ──────────────────────────────────
 // If risk > 70 → suggest reroute
@@ -53,6 +54,12 @@ export async function generateRecommendation(
     .single();
 
   if (error) return { data: null, error: error.message };
+
+  // Attach AI explanation
+  if (data) {
+    (data as any).explanation = await generateRecommendationExplanation(data);
+  }
+
   return { data, error: null };
 }
 
@@ -185,5 +192,15 @@ export async function getRecommendations(
     .limit(50);
 
   if (error) return { data: null, error: error.message };
-  return { data: data ?? [], error: null };
+  const recommendations = data ?? [];
+  
+  // Enrich with AI explanations
+  const enriched = await Promise.all(
+    recommendations.map(async (r: Recommendation) => ({
+      ...r,
+      explanation: await generateRecommendationExplanation(r)
+    }))
+  );
+
+  return { data: enriched, error: null };
 }

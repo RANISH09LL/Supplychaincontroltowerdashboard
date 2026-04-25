@@ -86,7 +86,14 @@ export function ActionCard() {
           </span>
           {/* Tooltip for Recommendation Explanation */}
           <div className="absolute right-0 bottom-full mb-2 w-48 p-2.5 bg-foreground text-background text-[11px] rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 text-center leading-relaxed font-medium">
-            High historical success rate for this structural adjustment under current stress conditions.
+            {rec?.explanation ? (
+              <div className="space-y-1.5 text-left">
+                <p className="text-primary-foreground/60 uppercase text-[9px] font-black tracking-wider">Why this works</p>
+                <p>{rec.explanation}</p>
+              </div>
+            ) : (
+              "High historical success rate for this structural adjustment under current stress conditions."
+            )}
             <div className="absolute -bottom-1 right-5 w-2 h-2 bg-foreground rotate-45" />
           </div>
         </div>
@@ -94,7 +101,10 @@ export function ActionCard() {
 
       <div className="flex gap-2">
 
-        <button className="flex-1 px-4 py-2.5 bg-muted/40 text-foreground rounded-lg text-[13px] font-bold border border-border hover:bg-muted/60 transition-colors">
+        <button 
+          onClick={() => toast.info('Calculating alternative routes...')}
+          className="flex-1 px-4 py-2.5 bg-muted/40 text-foreground rounded-lg text-[13px] font-bold border border-border hover:bg-muted/60 hover:scale-[1.02] transition-all"
+        >
           View Options
         </button>
         <button 

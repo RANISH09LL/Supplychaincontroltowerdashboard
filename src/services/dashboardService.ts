@@ -6,7 +6,7 @@
 import { supabase } from '../lib/supabase';
 import { getAlerts } from './alertService';
 import { getRecommendations, getTradeOffOptions } from './recommendationService';
-import { costOfDelay } from './riskService';
+import { costOfDelay, attachRiskExplanation } from './riskService';
 import type { DashboardData, DashboardMetrics, ServiceResult, Shipment } from '../types';
 
 // ─── getDashboardData ────────────────────────────────────────
@@ -25,9 +25,19 @@ export async function getDashboardData(
   if (alertsRes.error)    return { data: null, error: alertsRes.error };
   if (recsRes.error)      return { data: null, error: recsRes.error };
 
-  const shipments       = shipmentsRes.data ?? [];
+  const rawShipments     = shipmentsRes.data ?? [];
   const alerts          = alertsRes.data    ?? [];
   const recommendations = recsRes.data      ?? [];
+
+  // Enrich At-Risk shipments with AI explanation
+  const shipments = await Promise.all(
+    rawShipments.map(async (s: Shipment) => {
+      if (s.status === 'at_risk' || s.risk_score > 60) {
+        return await attachRiskExplanation(s);
+      }
+      return s;
+    })
+  );
 
   // Trade-off options for all at-risk shipments
   const atRiskShipments = shipments.filter((s: Shipment) => s.status === 'at_risk');

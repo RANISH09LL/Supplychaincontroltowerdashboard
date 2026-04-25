@@ -15,8 +15,8 @@ export default function DashboardPage() {
   return (
     <div>
       {/* Top bar */}
-      <div className="flex items-center justify-between mb-7">
-        <div className="flex-1 max-w-md">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-7 gap-4">
+        <div className="flex-1 w-full max-w-md">
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" strokeWidth={1.8} />
             <input
@@ -26,7 +26,7 @@ export default function DashboardPage() {
             />
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between w-full md:w-auto gap-4">
           <div className="flex items-center gap-2 text-[11px]">
             <span className="text-muted-foreground font-medium">System Status</span>
             <span className="text-[var(--risk-low)] font-bold flex items-center gap-1.5">
@@ -45,13 +45,13 @@ export default function DashboardPage() {
       </div>
 
       {/* Welcome + Generate */}
-      <div className="flex items-end justify-between mb-7">
+      <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-7 gap-4">
         <div>
           <h1 className="text-[28px] text-foreground font-display leading-[1.15] tracking-tight">Welcome back,</h1>
           <h2 className="text-[28px] text-foreground font-display leading-[1.15] tracking-tight">Operations Team</h2>
           <p className="text-[13px] text-muted-foreground mt-2 font-medium">Here's your supply chain overview.</p>
         </div>
-        <div className="flex flex-col items-end gap-2.5">
+        <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-2.5">
           <p className="text-[11px] text-muted-foreground font-medium">Last updated: Today, {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
           <button 
             onClick={() => refresh()}
@@ -63,7 +63,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-4 gap-5 mb-7">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
         <MetricCard title="Total Shipments" value={metrics?.total_shipments?.toString() || '0'} change="+0 vs yesterday" icon={Package} tintColor="bg-primary/8" />
         <MetricCard title="At Risk" value={metrics?.at_risk_count?.toString() || '0'} change={`${metrics?.total_shipments ? ((metrics.at_risk_count / metrics.total_shipments) * 100).toFixed(1) : 0}% of total`} icon={AlertTriangle} tintColor="bg-[var(--risk-high)]/8" />
         <MetricCard title="Total Value at Risk" value={`$${((metrics?.total_value_at_risk || 0) / 1000000).toFixed(2)}M`} change="+ $0M vs yesterday" icon={DollarSign} tintColor="bg-secondary/30" />
@@ -71,7 +71,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Middle row — 3 columns */}
-      <div className="grid grid-cols-3 gap-5 mb-7">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-7">
         <RiskChart />
         <CriticalIssues />
         <ActionCard />

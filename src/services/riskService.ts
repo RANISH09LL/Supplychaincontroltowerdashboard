@@ -5,6 +5,13 @@
 
 import { supabase } from '../lib/supabase';
 import type { Shipment, ShipmentEvent, Route, ServiceResult } from '../types';
+import { generateRiskExplanation } from './aiService';
+
+// ─── attachRiskExplanation ───────────────────────────────────
+export async function attachRiskExplanation(shipment: Shipment): Promise<Shipment> {
+  const explanation = await generateRiskExplanation(shipment);
+  return { ...shipment, riskExplanation: explanation };
+}
 
 // ─── Severity weight map ─────────────────────────────────────
 
