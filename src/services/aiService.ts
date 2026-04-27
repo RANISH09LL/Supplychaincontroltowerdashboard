@@ -1,100 +1,147 @@
 // src/services/aiService.ts
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// ============================================================
+// AI SERVICE — Groq API with Google Gemma 2 (Free, no billing)
+// ============================================================
+
 import type { Shipment, Recommendation, Simulation } from '../types';
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
-const model = genAI ? genAI.getGenerativeModel({ model: "gemini-1.5-flash" }) : null;
+const GROQ_API_KEY = import.meta.env.VITE_GEMINI_API_KEY; // reusing same env var
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL = 'llama-3.3-70b-versatile'; // Meta Llama 3.3 70B on Groq (free)
 
-export const isAIEnabled = !!API_KEY;
+export const isAIEnabled = !!GROQ_API_KEY;
 
-/**
- * Generic helper to get Gemini response
- */
-export async function getGeminiResponse(systemPrompt: string, userContent: any): Promise<string> {
-  if (!model) {
-    return "AI insights currently unavailable.";
-  }
+// ─── Core helper ─────────────────────────────────────────────
+
+async function callGroq(systemPrompt: string, userMessage: string): Promise<string> {
+  if (!GROQ_API_KEY) return 'AI insights currently unavailable. Please add a GROQ API key.';
 
   try {
-    const prompt = `${systemPrompt}\n\nData Context: ${JSON.stringify(userContent)}`;
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text().trim();
-    // Return max 1-2 sentences as per requirement
-    return text || "No specific insight generated.";
+    const response = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage },
+        ],
+        max_tokens: 256,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      console.error('Groq API error:', err);
+      return 'AI insight temporarily unavailable.';
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content?.trim() || 'No insight generated.';
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    return "Error generating AI insight.";
+    console.error('Groq fetch error:', error);
+    return 'Error generating AI insight.';
   }
 }
 
-/**
- * Generate explanation for shipment risk
- */
+// ─── Generic helper (backwards-compatible) ──────────────────
+
+export async function getGeminiResponse(systemPrompt: string, userContent: any): Promise<string> {
+  return callGroq(systemPrompt, JSON.stringify(userContent));
+}
+
+// ─── Shipment risk explanation ───────────────────────────────
+
 export async function generateRiskExplanation(shipment: Shipment): Promise<string> {
-  if (!isAIEnabled) return "High congestion and delay patterns detected on this route.";
-  
-  const systemPrompt = "You are a logistics risk analyst. In one short sentence, explain why this shipment is at risk.";
-  const context = {
-    code: shipment.shipment_code,
-    origin: shipment.origin,
-    destination: shipment.destination,
-    risk_score: shipment.risk_score,
-    status: shipment.status
-  };
-  
-  const response = await getGeminiResponse(systemPrompt, context);
-  return response.includes("Error") || response.includes("unavailable") 
-    ? "High congestion and delay patterns detected on this route." 
+  if (!isAIEnabled) return 'High congestion and delay patterns detected on this route.';
+
+  const systemPrompt = 'You are a logistics risk analyst. In one short sentence, explain why this shipment is at risk based on the data provided.';
+  const userMessage = `Shipment: ${shipment.shipment_code}, Origin: ${shipment.origin}, Destination: ${shipment.destination}, Risk Score: ${shipment.risk_score}/100, Status: ${shipment.status}`;
+
+  const response = await callGroq(systemPrompt, userMessage);
+  return response.includes('unavailable') || response.includes('Error')
+    ? 'High congestion and delay patterns detected on this route.'
     : response;
 }
 
-/**
- * Generate explanation for recommendation business value
- */
+// ─── Recommendation explanation ─────────────────────────────
+
 export async function generateRecommendationExplanation(recommendation: Recommendation): Promise<string> {
-  if (!isAIEnabled) return "Recommended route reduces exposure to high-risk regions.";
+  if (!isAIEnabled) return 'Recommended route reduces exposure to high-risk regions.';
 
-  const systemPrompt = "Explain the business value of this recommendation in one sentence focusing on cost, risk, or speed.";
-  const context = {
-    action: recommendation.action_type,
-    risk_before: recommendation.risk_before,
-    risk_after: recommendation.risk_after,
-    eta_change: recommendation.eta_change,
-    cost_impact: recommendation.cost_impact
-  };
+  const systemPrompt = 'Explain the business value of this supply chain recommendation in one sentence focusing on cost, risk, or speed.';
+  const userMessage = `Action: ${recommendation.action_type}, Risk reduced from ${recommendation.risk_before} to ${recommendation.risk_after}, ETA change: ${recommendation.eta_change}h, Cost impact: $${recommendation.cost_impact}`;
 
-  const response = await getGeminiResponse(systemPrompt, context);
-  return response.includes("Error") || response.includes("unavailable")
-    ? "Recommended route reduces exposure to high-risk regions."
+  const response = await callGroq(systemPrompt, userMessage);
+  return response.includes('unavailable') || response.includes('Error')
+    ? 'Recommended route reduces exposure to high-risk regions.'
     : response;
 }
 
-/**
- * Generate insight for simulation results
- */
+// ─── Simulation insight ──────────────────────────────────────
+
 export async function generateSimulationInsight(simulation: Simulation): Promise<string> {
-  if (!isAIEnabled) return "Simulation shows potential bottleneck in current routing structure.";
+  if (!isAIEnabled) return 'Simulation shows potential bottleneck in current routing structure.';
 
-  const systemPrompt = "Analyze this simulation result and identify the biggest risk or failure point in one sentence.";
-  const context = {
-    type: simulation.type,
-    impact_factor: simulation.impact_factor
-  };
+  const systemPrompt = 'Analyze this supply chain simulation and identify the biggest risk or failure point in one sentence.';
+  const userMessage = `Simulation type: ${simulation.type}, Impact factor: ${simulation.impact_factor}`;
 
-  const response = await getGeminiResponse(systemPrompt, context);
-  return response.includes("Error") || response.includes("unavailable")
-    ? "Simulation shows potential bottleneck in current routing structure."
+  const response = await callGroq(systemPrompt, userMessage);
+  return response.includes('unavailable') || response.includes('Error')
+    ? 'Simulation shows potential bottleneck in current routing structure.'
     : response;
 }
 
-/**
- * Bonus: Ask Assistant helper
- */
-export async function askAssistant(query: string, contextData: any): Promise<string> {
-  if (!model) return "Assistant is currently offline.";
+// ─── Chat session (conversational) ──────────────────────────
 
-  const systemPrompt = "You are a Supply Chain Assistant. Answer the user query based on the provided dashboard summary. Keep it short (1-2 sentences).";
-  return getGeminiResponse(systemPrompt, { query, ...contextData });
+export type GroqMessage = { role: 'system' | 'user' | 'assistant'; content: string };
+
+export function createChatSession(contextData: any) {
+  const systemPrompt = `You are a Supply Chain Assistant for the Supply Chain Control Tower dashboard.
+Help the user analyze their supply chain data and answer questions about specific shipments, alerts, or recommendations.
+Be professional, concise, and helpful (2-4 sentences max per response).
+
+LIVE DASHBOARD DATA:
+${JSON.stringify(contextData, null, 2)}`;
+
+  const history: GroqMessage[] = [
+    { role: 'system', content: systemPrompt },
+  ];
+
+  return {
+    history,
+    async sendMessage(userText: string): Promise<{ response: { text: () => string } }> {
+      history.push({ role: 'user', content: userText });
+
+      const response = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: history,
+          max_tokens: 512,
+          temperature: 0.7,
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err?.error?.message || 'Groq API error');
+      }
+
+      const data = await response.json();
+      const text = data.choices?.[0]?.message?.content?.trim() || 'No response generated.';
+
+      history.push({ role: 'assistant', content: text });
+
+      return { response: { text: () => text } };
+    }
+  };
 }

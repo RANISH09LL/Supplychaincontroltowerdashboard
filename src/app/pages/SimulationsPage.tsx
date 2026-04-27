@@ -2,13 +2,13 @@ import { SimulationCenter } from '../components/SimulationCenter';
 import { useDashboard } from '../DashboardContext';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Clock, PlayCircle, Loader2, Zap, Wind, Ship, TrendingUp } from 'lucide-react';
+import { Clock, Loader2, Zap, Wind, Ship, TrendingUp } from 'lucide-react';
 
-const SIM_META: Record<string, { label: string; icon: React.ElementType; impact: string; color: string }> = {
-  storm:        { label: 'Severe Storm Event',   icon: Wind,      impact: '+40% risk spike',         color: 'var(--risk-high)' },
-  congestion:   { label: 'Port Congestion',      icon: Ship,      impact: '+25% delay increase',     color: 'var(--risk-medium)' },
-  delay:        { label: 'Systemic Delay',       icon: Clock,     impact: '+20% transit time',       color: 'var(--risk-medium)' },
-  demand_spike: { label: 'Demand Spike',         icon: TrendingUp,impact: '+15% customs backlog',    color: 'var(--risk-low)' },
+const SIM_META: Record<string, { label: string; icon: React.ElementType; impact: string; color: string; location: string }> = {
+  storm:        { label: 'Severe Storm',   icon: Wind,       impact: '+40% risk spike',      color: 'var(--risk-high)',   location: 'Bay of Bengal' },
+  congestion:   { label: 'Port Congestion', icon: Ship,      impact: '+25% delay increase',  color: 'var(--risk-medium)', location: 'Port of LA' },
+  delay:        { label: 'Traffic Delay',  icon: Clock,      impact: '+20% transit time',    color: 'var(--risk-medium)', location: 'Trans-Saharan Route' },
+  demand_spike: { label: 'Demand Spike',   icon: TrendingUp, impact: '+35% customs backlog', color: 'var(--risk-low)',    location: 'Global' },
 };
 
 export default function SimulationsPage() {
@@ -32,59 +32,90 @@ export default function SimulationsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-[22px] text-foreground font-display">Simulation Center</h1>
-          <p className="text-[13px] text-muted-foreground mt-1">Model disruptions and stress-test your supply chain</p>
-        </div>
-        <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-[13px] font-medium shadow-sm hover:bg-primary/90 transition-colors flex items-center gap-2">
-          <PlayCircle className="w-4 h-4" /> New Simulation
-        </button>
+      <div style={{ marginBottom: 28 }}>
+        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, fontWeight: 400, color: 'var(--foreground)', margin: 0 }}>
+          Simulation Center
+        </h1>
+        <p style={{ fontSize: 13, color: 'var(--muted-foreground)', marginTop: 4 }}>
+          Create &amp; run simulations
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SimulationCenter />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+        {/* Left: Simulation Center Component */}
+        <div style={{
+          background: 'var(--card)',
+          borderRadius: 14,
+          border: '1.5px solid var(--border)',
+          padding: 24,
+          boxShadow: '0 2px 8px rgba(61,90,30,0.06)',
+        }}>
+          <SimulationCenter />
+        </div>
 
-        {/* Live Simulation History */}
-        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="text-[16px] text-foreground font-display">Simulation History</h3>
-            <span className="text-[12px] text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full">
-              {history.length} runs
-            </span>
+        {/* Right: Simulation History */}
+        <div style={{
+          background: 'var(--card)',
+          borderRadius: 14,
+          border: '1.5px solid var(--border)',
+          padding: 24,
+          boxShadow: '0 2px 8px rgba(61,90,30,0.06)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, fontWeight: 400, color: 'var(--foreground)', margin: 0 }}>
+              Simulation History
+            </h3>
+            <button style={{ fontSize: 12, color: 'var(--muted-foreground)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+              View All
+            </button>
           </div>
 
           {loadingHistory ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 text-primary animate-spin" />
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0' }}>
+              <Loader2 style={{ width: 22, height: 22, color: 'var(--primary)', animation: 'spin 1s linear infinite' }} />
             </div>
           ) : history.length === 0 ? (
-            <div className="text-center py-12">
-              <Zap className="w-8 h-8 text-muted-foreground mx-auto mb-3 opacity-50" />
-              <p className="text-[13px] text-muted-foreground">No simulations run yet.</p>
-              <p className="text-[12px] text-muted-foreground mt-1">Use the panel to run your first simulation.</p>
+            <div style={{ textAlign: 'center', padding: '48px 0', opacity: 0.5 }}>
+              <Zap style={{ width: 32, height: 32, margin: '0 auto 10px', color: 'var(--muted-foreground)' }} />
+              <p style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>No simulations run yet.</p>
+              <p style={{ fontSize: 12, color: 'var(--muted-foreground)', marginTop: 4 }}>Use the panel to run your first simulation.</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {history.map((sim) => {
-                const meta = SIM_META[sim.type] ?? { label: sim.type, icon: Zap, impact: '—', color: 'var(--muted-foreground)' };
+                const meta = SIM_META[sim.type] ?? { label: sim.type, icon: Zap, impact: '—', color: 'var(--muted-foreground)', location: '' };
                 const Icon = meta.icon;
                 return (
-                  <div key={sim.id} className="p-4 rounded-lg border border-border hover:bg-muted/20 transition-colors cursor-pointer">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: `color-mix(in srgb, ${meta.color} 12%, transparent)` }}>
-                          <Icon className="w-3.5 h-3.5" style={{ color: meta.color }} />
+                  <div key={sim.id} style={{
+                    padding: '12px 14px',
+                    borderRadius: 10,
+                    border: '1px solid var(--border)',
+                    background: 'var(--background)',
+                    transition: 'background 0.2s',
+                    cursor: 'pointer',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{
+                          width: 30, height: 30,
+                          borderRadius: 8,
+                          background: `color-mix(in srgb, ${meta.color} 12%, transparent)`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          <Icon style={{ width: 14, height: 14, color: meta.color }} />
                         </div>
-                        <p className="text-[13px] text-foreground font-medium">{meta.label}</p>
+                        <div>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)', margin: 0 }}>{meta.label}</p>
+                          <p style={{ fontSize: 11, color: 'var(--muted-foreground)', margin: 0 }}>{meta.location}</p>
+                        </div>
                       </div>
-                      <span className="text-[11px] text-muted-foreground flex-shrink-0 ml-2">
-                        {new Date(sim.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      <span style={{ fontSize: 11, color: 'var(--muted-foreground)', flexShrink: 0 }}>
+                        {new Date(sim.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-[12px] text-muted-foreground ml-9">
-                      <span>Impact factor: {sim.impact_factor}×</span>
-                      <span className="font-medium" style={{ color: meta.color }}>{meta.impact}</span>
+                    <div style={{ display: 'flex', gap: 16, fontSize: 12, color: 'var(--muted-foreground)', paddingLeft: 40 }}>
+                      <span>Impact: {sim.impact_factor}×</span>
+                      <span style={{ fontWeight: 700, color: meta.color }}>{meta.impact}</span>
                     </div>
                   </div>
                 );
@@ -93,6 +124,7 @@ export default function SimulationsPage() {
           )}
         </div>
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

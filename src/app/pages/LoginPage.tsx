@@ -5,8 +5,10 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { supabase } from '../../lib/supabase';
 import { loginUser, signupUser } from '../../services/authService';
-import { Package, AlertCircle, Loader2 } from 'lucide-react';
+import { seedDemoDataIfNeeded } from '../../services/demoDataService';
+import { Package, AlertCircle, Loader2, KeyRound } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -31,6 +33,48 @@ export default function LoginPage() {
     } else {
       navigate('/');
     }
+  }
+
+  async function handleDemoLogin() {
+    setError(null);
+    setLoading(true);
+
+    const demoEmail = 'demo_judge@supplychain.com';
+    const demoPassword = 'DemoPassword123!';
+
+    // Try login first
+    let { data, error: err } = await loginUser(demoEmail, demoPassword);
+    
+    // If login fails, try signup
+    if (err) {
+      const signupResult = await signupUser(demoEmail, demoPassword);
+      err = signupResult.error;
+      data = signupResult.data;
+    }
+
+    if (err || !data?.userId) {
+      setLoading(false);
+      setError(err || 'Failed to initialize demo account. If you see rate limit errors, try again later.');
+      return;
+    }
+
+    // Verify session was actually created (fails if email confirmation is required)
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      setLoading(false);
+      setError('Setup Required: Please go to Supabase Dashboard -> Authentication -> Providers -> Email and turn OFF "Confirm email". Then try again.');
+      return;
+    }
+
+    // Seed data
+    const seedResult = await seedDemoDataIfNeeded(data.userId);
+    if (!seedResult.success) {
+      console.error(seedResult.message);
+      // Even if seed fails, proceed to app
+    }
+
+    setLoading(false);
+    navigate('/');
   }
 
   return (
@@ -234,6 +278,37 @@ export default function LoginPage() {
             {loading ? 'Please wait…' : (mode === 'login' ? 'Sign In' : 'Create Account')}
           </button>
         </form>
+
+        {/* Demo Login Divider */}
+        <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0 16px 0' }}>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(61,90,30,0.1)' }} />
+          <span style={{ margin: '0 12px', fontSize: '11px', color: '#8A9B7A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>OR</span>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(61,90,30,0.1)' }} />
+        </div>
+
+        {/* Demo Login Button */}
+        <button
+          type="button"
+          disabled={loading}
+          onClick={handleDemoLogin}
+          style={{
+            width: '100%', padding: '12px',
+            background: 'transparent',
+            color: '#3D5A1E',
+            border: '1px solid rgba(61,90,30,0.3)', 
+            borderRadius: '8px',
+            fontSize: '14px', fontWeight: 600,
+            cursor: loading ? 'not-allowed' : 'pointer',
+            display: 'flex', alignItems: 'center',
+            justifyContent: 'center', gap: '8px',
+            transition: 'background 0.2s, border-color 0.2s',
+          }}
+          onMouseEnter={e => { if (!loading) (e.currentTarget.style.background = 'rgba(61,90,30,0.05)'); }}
+          onMouseLeave={e => { if (!loading) (e.currentTarget.style.background = 'transparent'); }}
+        >
+          <KeyRound size={16} />
+          Sign in as Demo User (Judges)
+        </button>
 
         {/* Footer note */}
         <p style={{

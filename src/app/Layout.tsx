@@ -43,7 +43,7 @@ export function Layout() {
       <Toaster position="bottom-right" richColors />
 
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[#E5DFCA] border-b border-[rgba(61,90,30,0.15)] z-40 flex items-center justify-between px-4">
+      <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[#C8BFA2] border-b border-[rgba(61,90,30,0.2)] z-40 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <img src="/tree-botanical.jpg" alt="Logo" className="w-8 h-8 object-cover rounded-md" />
           <h2 className="text-[14px] text-[#1A2412] font-display font-semibold">Control Tower</h2>
@@ -62,7 +62,7 @@ export function Layout() {
       )}
 
       {/* Sidebar — full height from very top */}
-      <aside className={`w-[230px] bg-[#E5DFCA] border-r border-[rgba(61,90,30,0.15)] min-h-screen flex flex-col fixed left-0 top-0 bottom-0 z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`w-[230px] bg-[#C8BFA2] border-r border-[rgba(61,90,30,0.2)] min-h-screen flex flex-col fixed left-0 top-0 bottom-0 z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo */}
         <div className="px-5 pt-7 pb-5">
           <div className="flex items-center gap-3">
